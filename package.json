@@ -4,7 +4,7 @@
   "description": "Vue component for editing Vue components",
   "packageManager": "pnpm@9.15.5",
   "type": "module",
-  "main": "dist/ssr-stub.js",
+  "main": "dist/vue-repl.js",
   "module": "dist/vue-repl.js",
   "files": [
     "dist"
