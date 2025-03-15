@@ -41,7 +41,7 @@ watch(showMessage, () => {
       :filename="store.activeFile.filename"
       @change="onChange"
     />
-    <Message v-show="showMessage" :err="store.errors[0]" />
+    <!-- <Message v-show="showMessage" :err="store.errors[0]" /> -->
 
     <div class="editor-floating">
       <ToggleButton

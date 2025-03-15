@@ -1,114 +1,67 @@
 <script setup lang="ts">
-import SplitPane from './SplitPane.vue'
-import Output from './output/Output.vue'
 import { type Store, useStore } from './store'
-import { computed, provide, toRefs, useTemplateRef } from 'vue'
-import {
-  type EditorComponentType,
-  injectKeyPreviewRef,
-  injectKeyProps,
-} from './types'
+import { provide, toRefs } from 'vue'
+import { injectKeyProps } from './types'
 import EditorContainer from './editor/EditorContainer.vue'
-import type * as monaco from 'monaco-editor-core'
 
 export interface Props {
   theme?: 'dark' | 'light'
-  previewTheme?: boolean
-  editor: EditorComponentType
+  editor: any // Will only accept CodeMirror editor
   store?: Store
   autoResize?: boolean
-  showCompileOutput?: boolean
-  showImportMap?: boolean
-  showTsConfig?: boolean
-  clearConsole?: boolean
-  layout?: 'horizontal' | 'vertical'
-  layoutReverse?: boolean
-  ssr?: boolean
-  previewOptions?: {
-    headHTML?: string
-    bodyHTML?: string
-    placeholderHTML?: string
-    customCode?: {
-      importCode?: string
-      useCode?: string
-    }
-    showRuntimeError?: boolean
-    showRuntimeWarning?: boolean
-  }
+  initialValue?: string
+  filename?: string
   editorOptions?: {
-    showErrorText?: string | false
     autoSaveText?: string | false
-    monacoOptions?: monaco.editor.IStandaloneEditorConstructionOptions
-  }
-  splitPaneOptions?: {
-    codeTogglerText?: string
-    outputTogglerText?: string
   }
 }
 
 const autoSave = defineModel<boolean>({ default: true })
+
 const props = withDefaults(defineProps<Props>(), {
   theme: 'light',
-  previewTheme: false,
   store: () => useStore(),
   autoResize: true,
-  showCompileOutput: true,
-  showImportMap: true,
-  showTsConfig: true,
-  clearConsole: true,
-  layoutReverse: false,
-  ssr: false,
-  layout: 'horizontal',
-  previewOptions: () => ({}),
+  initialValue: '',
+  filename: 'text.txt',
   editorOptions: () => ({}),
-  splitPaneOptions: () => ({}),
 })
 
-if (!props.editor) {
-  throw new Error('The "editor" prop is now required.')
+// Check if CodeMirror is being used
+if (props.editor.editorType !== 'codemirror') {
+  throw new Error('This component only supports CodeMirror editor')
 }
 
-const outputRef = useTemplateRef('output')
+// Initialize store with a simple text file
+if (props.initialValue && props.filename) {
+  if (!props.store.files[props.filename]) {
+    props.store.files[props.filename] = {
+      filename: props.filename,
+      code: props.initialValue,
+    }
+  }
+  props.store.activeFilename = props.filename
+}
 
 props.store.init()
-
-const editorSlotName = computed(() => (props.layoutReverse ? 'right' : 'left'))
-const outputSlotName = computed(() => (props.layoutReverse ? 'left' : 'right'))
 
 provide(injectKeyProps, {
   ...toRefs(props),
   autoSave,
 })
-provide(
-  injectKeyPreviewRef,
-  computed(() => outputRef.value?.previewRef?.container ?? null),
-)
 
-/**
- * Reload the preview iframe
- */
-function reload() {
-  outputRef.value?.reload()
+// Expose method to get current content
+const getValue = () => props.store.activeFile.code
+const setValue = (code: string) => {
+  props.store.activeFile.code = code
 }
 
-defineExpose({ reload })
+defineExpose({ getValue, setValue })
 </script>
 
 <template>
-  <div class="vue-repl">
-    <SplitPane :layout="layout">
-      <template #[editorSlotName]>
-        <EditorContainer :editor-component="editor" />
-      </template>
-      <template #[outputSlotName]>
-        <Output
-          ref="output"
-          :editor-component="editor"
-          :show-compile-output="props.showCompileOutput"
-          :ssr="!!props.ssr"
-        />
-      </template>
-    </SplitPane>
+  <div class="vue-repl" :class="{ dark: theme === 'dark' }">
+    <EditorContainer :editor-component="editor" />
   </div>
 </template>
 
@@ -127,8 +80,9 @@ defineExpose({ reload })
   margin: 0;
   overflow: hidden;
   font-size: 13px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   background-color: var(--bg-soft);
 }
 

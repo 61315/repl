@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { injectKeyProps } from '../../src/types'
-import { importMapFile, stripSrcPrefix, tsconfigFile } from '../store'
 import { type VNode, computed, inject, ref, useTemplateRef } from 'vue'
 
-const { store, showTsConfig, showImportMap } = inject(injectKeyProps)!
+const { store } = inject(injectKeyProps)!
 
 /**
  * When `true`: indicates adding a new file
@@ -13,29 +12,31 @@ const { store, showTsConfig, showImportMap } = inject(injectKeyProps)!
 const pending = ref<boolean | string>(false)
 /**
  * Text shown in the input box when editing a file's name
- * This is a display name so it should always strip off the `src/` prefix.
  */
-const pendingFilename = ref('Comp.vue')
+const pendingFilename = ref('file.txt')
+
+// Helper function to strip any path prefix from filename
+function stripPrefix(filename: string): string {
+  const parts = filename.split('/')
+  return parts[parts.length - 1]
+}
 
 const files = computed(() =>
   Object.entries(store.value.files)
-    .filter(
-      ([name, file]) =>
-        name !== importMapFile && name !== tsconfigFile && !file.hidden,
-    )
+    .filter(([_, file]) => !file.hidden)
     .map(([name]) => name),
 )
 
 function startAddFile() {
   let i = 0
-  let name = `Comp.vue`
+  let name = `file.txt`
 
   while (true) {
     let hasConflict = false
     for (const filename in store.value.files) {
-      if (stripSrcPrefix(filename) === name) {
+      if (stripPrefix(filename) === name) {
         hasConflict = true
-        name = `Comp${++i}.vue`
+        name = `file${++i}.txt`
         break
       }
     }
@@ -63,23 +64,20 @@ function doneNameFile() {
     return
   }
 
-  // add back the src prefix
-  const filename = 'src/' + pendingFilename.value
+  const filename = pendingFilename.value
   const oldFilename = pending.value === true ? '' : pending.value
 
-  if (!/\.(vue|jsx?|tsx?|css|json)$/.test(filename)) {
-    store.value.errors = [
-      `Playground only supports *.vue, *.jsx?, *.tsx?, *.css, *.json files.`,
-    ]
-    return
-  }
+  // Accept common text file extensions
+  // if (!/\.(txt|md|html|css|js|jsx|ts|tsx|json|xml|csv|yaml|yml|ini|log|sh|bat|py|rb|java|c|cpp|h|hpp|glsl|fs|vs|frag|vert)$/.test(filename)) {
+  //   alert("Please provide a valid file extension")
+  //   return
+  // }
 
   if (filename !== oldFilename && filename in store.value.files) {
-    store.value.errors = [`File "${filename}" already exists.`]
+    alert(`File "${filename}" already exists.`)
     return
   }
 
-  store.value.errors = []
   cancelNameFile()
 
   if (filename === oldFilename) {
@@ -94,7 +92,7 @@ function doneNameFile() {
 }
 
 function editFileName(file: string) {
-  pendingFilename.value = stripSrcPrefix(file)
+  pendingFilename.value = stripPrefix(file)
   pending.value = file
 }
 
@@ -112,22 +110,17 @@ function horizontalScroll(e: WheelEvent) {
 </script>
 
 <template>
-  <div
-    ref="fileSelector"
-    class="file-selector"
-    :class="{ 'has-import-map': showImportMap }"
-    @wheel="horizontalScroll"
-  >
+  <div ref="fileSelector" class="file-selector" @wheel="horizontalScroll">
     <template v-for="(file, i) in files" :key="file">
       <div
         v-if="pending !== file"
         class="file"
         :class="{ active: store.activeFile.filename === file }"
         @click="store.setActive(file)"
-        @dblclick="i > 0 && editFileName(file)"
+        @dblclick="editFileName(file)"
       >
-        <span class="label">{{ stripSrcPrefix(file) }}</span>
-        <span v-if="i > 0" class="remove" @click.stop="store.deleteFile(file)">
+        <span class="label">{{ stripPrefix(file) }}</span>
+        <span class="remove" @click.stop="store.deleteFile(file)">
           <svg class="icon" width="12" height="12" viewBox="0 0 24 24">
             <line stroke="#999" x1="18" y1="6" x2="6" y2="18" />
             <line stroke="#999" x1="6" y1="6" x2="18" y2="18" />
@@ -151,25 +144,6 @@ function horizontalScroll(e: WheelEvent) {
       </div>
     </template>
     <button class="add" @click="startAddFile">+</button>
-
-    <div class="import-map-wrapper">
-      <div
-        v-if="showTsConfig && store.files[tsconfigFile]"
-        class="file"
-        :class="{ active: store.activeFile.filename === tsconfigFile }"
-        @click="store.setActive(tsconfigFile)"
-      >
-        <span class="label">tsconfig.json</span>
-      </div>
-      <div
-        v-if="showImportMap"
-        class="file"
-        :class="{ active: store.activeFile.filename === importMapFile }"
-        @click="store.setActive(importMapFile)"
-      >
-        <span class="label">Import Map</span>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -205,10 +179,6 @@ function horizontalScroll(e: WheelEvent) {
   }
 }
 
-.file-selector.has-import-map .add {
-  margin-right: 10px;
-}
-
 .file {
   position: relative;
   display: inline-block;
@@ -218,16 +188,19 @@ function horizontalScroll(e: WheelEvent) {
   color: var(--text-light);
   box-sizing: border-box;
 }
+
 .file.active {
   color: var(--color-branding);
   border-bottom: 3px solid var(--color-branding);
   cursor: text;
 }
+
 .file span {
   display: inline-block;
   padding: 8px 10px 6px;
   line-height: 20px;
 }
+
 .file.pending span {
   min-width: 50px;
   min-height: 34px;
@@ -235,6 +208,7 @@ function horizontalScroll(e: WheelEvent) {
   background-color: rgba(200, 200, 200, 0.2);
   color: transparent;
 }
+
 .file.pending input {
   position: absolute;
   inset: 8px 7px auto;
@@ -248,6 +222,7 @@ function horizontalScroll(e: WheelEvent) {
   color: inherit;
   background-color: transparent;
 }
+
 .file .remove {
   display: inline-block;
   vertical-align: middle;
@@ -255,6 +230,7 @@ function horizontalScroll(e: WheelEvent) {
   cursor: pointer;
   padding-left: 0;
 }
+
 .add {
   font-size: 18px;
   font-family: var(--font-code);
@@ -264,30 +240,12 @@ function horizontalScroll(e: WheelEvent) {
   position: relative;
   top: -1px;
 }
+
 .add:hover {
   color: var(--color-branding);
 }
+
 .icon {
   margin-top: -1px;
-}
-.import-map-wrapper {
-  position: sticky;
-  margin-left: auto;
-  top: 0;
-  right: 0;
-  padding-left: 30px;
-  background-color: var(--bg);
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 1) 25%
-  );
-}
-.dark .import-map-wrapper {
-  background: linear-gradient(
-    90deg,
-    rgba(26, 26, 26, 0) 0%,
-    rgba(26, 26, 26, 1) 25%
-  );
 }
 </style>

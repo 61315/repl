@@ -1,79 +1,53 @@
 /* eslint-disable @typescript-eslint/prefer-ts-expect-error */
 import { createApp, h, ref, watchEffect } from 'vue'
-import { type OutputModes, Repl, useStore, useVueImportMap } from '../src'
-// @ts-ignore
-import MonacoEditor from '../src/editor/MonacoEditor.vue'
-// @ts-ignore
+import { Repl, useStore } from '../src'
 import CodeMirrorEditor from '../src/editor/CodeMirrorEditor.vue'
 
+// Set up global window properties for development/testing
 const window = globalThis.window as any
 window.process = { env: {} }
 
 const App = {
   setup() {
-    const query = new URLSearchParams(location.search)
-    const { importMap: builtinImportMap, vueVersion } = useVueImportMap({
-      runtimeDev: import.meta.env.PROD
-        ? undefined
-        : `${location.origin}/src/vue-dev-proxy`,
-      serverRenderer: import.meta.env.PROD
-        ? undefined
-        : `${location.origin}/src/vue-server-renderer-dev-proxy`,
-    })
-    const store = (window.store = useStore(
-      {
-        builtinImportMap,
-        vueVersion,
-        showOutput: ref(query.has('so')),
-        outputMode: ref((query.get('om') as OutputModes) || 'preview'),
-      },
-      location.hash,
-    ))
+    // Initialize the store with optional serialized state from URL hash
+    const store = useStore({}, location.hash)
+
+    // Log store for debugging purposes
     console.info(store)
 
+    // Update URL hash when store changes for state persistence
     watchEffect(() => history.replaceState({}, '', store.serialize()))
 
-    // setTimeout(() => {
-    //   store.setFiles(
-    //     {
-    //       'src/index.html': '<h1>yo</h1>',
-    //       'src/main.js': 'document.body.innerHTML = "<h1>hello</h1>"',
-    //       'src/foo.js': 'document.body.innerHTML = "<h1>hello</h1>"',
-    //       'src/bar.js': 'document.body.innerHTML = "<h1>hello</h1>"',
-    //       'src/baz.js': 'document.body.innerHTML = "<h1>hello</h1>"',
-    //     },
-    //     'src/index.html',
-    //   )
-    // }, 1000)
+    // Example of adding files programmatically
+    // Uncomment to use
 
-    // store.vueVersion = '3.4.1'
+    setTimeout(() => {
+      store.addFile('readme.md')
+      store.addFile('example.txt')
+      store.addFile('script.js')
+      store.files['readme.md'].code =
+        '# Simple Text Editor\n\nThis is a markdown file example.'
+      store.files['script.js'].code = 'console.log("Hello world!");'
+    }, 1000)
+
+    // Set theme - can be 'light' or 'dark'
     const theme = ref<'light' | 'dark'>('dark')
     window.theme = theme
-    const previewTheme = ref(false)
-    window.previewTheme = previewTheme
 
+    // Return render function
     return () =>
       h(Repl, {
         store,
         theme: theme.value,
-        previewTheme: previewTheme.value,
-        editor: MonacoEditor,
-        // layout: 'vertical',
-        ssr: true,
-        sfcOptions: {
-          script: {
-            // inlineTemplate: false
-          },
-        },
-        // showCompileOutput: false,
-        // showImportMap: false
+        editor: CodeMirrorEditor,
+        initialValue:
+          '# Welcome to the Simple Text Editor\n\nStart typing or add files using the file selector above.',
+        filename: 'welcome.md',
         editorOptions: {
           autoSaveText: '💾',
-          monacoOptions: {
-            // wordWrap: 'on',
-          },
         },
-        // autoSave: false,
+        // Default to auto-save being enabled
+        autoSave: true,
       })
   },
 }
