@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type { CompilerError } from 'vue/compiler-sfc'
+// import type { CompilerError } from 'vue/compiler-sfc'
 
 const props = defineProps<{
   err?: string | Error | false
@@ -21,10 +21,10 @@ function formatMessage(err: string | Error): string {
     return err
   } else {
     let msg = err.message
-    const loc = (err as CompilerError).loc
-    if (loc && loc.start) {
-      msg = `(${loc.start.line}:${loc.start.column}) ` + msg
-    }
+    // const loc = (err as CompilerError).loc
+    // if (loc && loc.start) {
+    //   msg = `(${loc.start.line}:${loc.start.column}) ` + msg
+    // }
     return msg
   }
 }
