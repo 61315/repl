@@ -3,10 +3,11 @@ import { type Store, useStore } from './store'
 import { provide, toRefs } from 'vue'
 import { injectKeyProps } from './types'
 import EditorContainer from './editor/EditorContainer.vue'
+import CodeMirrorEditor from './editor/CodeMirrorEditor.vue'
 
 export interface Props {
   theme?: 'dark' | 'light'
-  editor: any // Will only accept CodeMirror editor
+  // editor: any // Will only accept CodeMirror editor
   store?: Store
   autoResize?: boolean
   initialValue?: string
@@ -28,9 +29,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 // Check if CodeMirror is being used
-if (props.editor.editorType !== 'codemirror') {
-  throw new Error('This component only supports CodeMirror editor')
-}
+// if (props.editor.editorType !== 'codemirror') {
+//   throw new Error('This component only supports CodeMirror editor')
+// }
 
 // Initialize store with a simple text file
 if (props.initialValue && props.filename) {
@@ -61,7 +62,7 @@ defineExpose({ getValue, setValue })
 
 <template>
   <div class="vue-repl" :class="{ dark: theme === 'dark' }">
-    <EditorContainer :editor-component="editor" />
+    <EditorContainer :editor-component="CodeMirrorEditor" />
   </div>
 </template>
 

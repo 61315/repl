@@ -44,11 +44,11 @@ watch(showMessage, () => {
     <!-- <Message v-show="showMessage" :err="store.errors[0]" /> -->
 
     <div class="editor-floating">
-      <ToggleButton
+      <!-- <ToggleButton
         v-if="editorOptions?.showErrorText !== false"
         v-model="showMessage"
         :text="editorOptions?.showErrorText || 'Show Error'"
-      />
+      /> -->
       <ToggleButton
         v-if="editorOptions?.autoSaveText !== false"
         v-model="autoSave"

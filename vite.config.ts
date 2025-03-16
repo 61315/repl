@@ -4,6 +4,18 @@ import base from './vite.preview.config'
 import fs from 'node:fs'
 import path from 'node:path'
 
+const genStub: Plugin = {
+  name: 'gen-stub',
+  apply: 'build',
+  generateBundle() {
+    this.emitFile({
+      type: 'asset',
+      fileName: 'ssr-stub.js',
+      source: `module.exports = {}`,
+    })
+  },
+}
+
 /**
  * Patch generated entries and import their corresponding CSS files.
  */
@@ -26,6 +38,7 @@ export default mergeConfig(base, {
     dts({
       rollupTypes: true,
     }),
+    genStub,
     patchCssFiles,
   ],
   optimizeDeps: {

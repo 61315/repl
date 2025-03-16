@@ -24,6 +24,12 @@ export class File {
         return 'json'
       case 'md':
         return 'markdown'
+      case 'glsl':
+      case 'fs':
+      case 'vs':
+      case 'frag':
+      case 'vert':
+        return 'clike'
       case 'txt':
       default:
         return 'text'

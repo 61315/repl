@@ -29,6 +29,11 @@ const modes: Record<string, Props['mode']> = {
     typescript: true,
   },
   vue: 'htmlmixed',
+  glsl: 'clike',
+  fs: 'clike',
+  vs: 'clike',
+  frag: 'clike',
+  vert: 'clike',
 }
 
 const activeMode = computed(() => {

@@ -4,7 +4,7 @@
   "description": "Vue component for editing Vue components",
   "packageManager": "pnpm@9.15.5",
   "type": "module",
-  "main": "dist/vue-repl.js",
+  "main": "dist/ssr-stub.js",
   "module": "dist/vue-repl.js",
   "files": [
     "dist"
@@ -13,7 +13,8 @@
   "exports": {
     ".": {
       "types": "./dist/vue-repl.d.ts",
-      "import": "./dist/vue-repl.js"
+      "import": "./dist/vue-repl.js",
+      "require": "./dist/ssr-stub.js"
     },
     "./codemirror-editor": {
       "types": "./dist/codemirror-editor.d.ts",
@@ -61,14 +62,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vuejs/repl.git"
+    "url": "git+https://github.com/61315/repl.git"
   },
-  "author": "Evan You",
+  "author": "Author",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/vuejs/repl/issues"
+    "url": "https://github.com/61315/repl/issues"
   },
-  "homepage": "https://github.com/vuejs/repl#readme",
+  "homepage": "https://github.com/61315/repl#readme",
   "devDependencies": {
     "@eslint/js": "^9.20.0",
     "@rollup/plugin-replace": "^6.0.2",

@@ -24,10 +24,20 @@ const App = {
     setTimeout(() => {
       store.addFile('readme.md')
       store.addFile('example.txt')
-      store.addFile('script.js')
+      store.addFile('shader.glsl')
       store.files['readme.md'].code =
         '# Simple Text Editor\n\nThis is a markdown file example.'
-      store.files['script.js'].code = 'console.log("Hello world!");'
+      store.files['shader.glsl'].code = `#version 300 es
+
+precision mediump float; 
+
+in vec4 color;
+out vec4 outColor;
+
+void main(){
+    outColor = color;
+}
+      `
     }, 1000)
 
     // Set theme - can be 'light' or 'dark'

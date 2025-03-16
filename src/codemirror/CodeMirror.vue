@@ -28,7 +28,8 @@ export interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  mode: 'htmlmixed',
+  // mode: 'htmlmixed',
+  mode: 'clike',
   value: '',
   readonly: false,
 })
